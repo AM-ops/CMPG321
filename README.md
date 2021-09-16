@@ -1,6 +1,8 @@
 # CMPG321
 Notes for CMPG321 - Advanced Databases. Used for Tutoring as well
 
+To download the pdf file directly click [here](/notes.pdf)
+
 Study unit 1 - Transaction Management and Concurrency Control
 
 Study unit 2 - DB Performance Tuning

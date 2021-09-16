@@ -1,0 +1,91 @@
+\documentclass[a4paper, 11pt, titlepage]{report}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{float}
+%\usepackage{longtable}
+\usepackage{amsmath}
+%\usepackage[normalem]{ulem}
+\usepackage{booktabs}
+%\usepackage{array}
+%\usepackage{tikz}
+%\usepackage{parskip}
+%\newcommand{\tabitem}{~~\llap{\textbullet}~~}
+\setlength{\tabcolsep}{18pt}
+\renewcommand{\arraystretch}{1.5}
+\renewcommand{\chaptername}{Study Unit}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=RoyalBlue,
+    filecolor=magenta,
+    urlcolor=RoyalBlue,
+    citecolor=RoyalBlue
+}
+\begin{document}
+\linespread{1.25}
+\title{CMPG321 - Advanced Databases\\Additional Notes\\Semester 2}
+\date{}
+\maketitle
+\tableofcontents{}
+
+\chapter{Transaction Management and Concurrency Control}
+\section{What Is a Transaction?}
+A \textbf{transaction} is a \textit{logical} unit of work that must be entirely completed or entirely aborted; no intermediate states are acceptable.\\
+A \textbf{consistent database state} is one in which all data integrity constraints are satisfied. To ensure consistency of the database, every transaction must begin with the database in a known consistent state.
+\subsection{Evaluating Transaction Results}
+Not all transactions update the database. The DBMS cannot guarantee that the semantic meaning of the transaction truly represents the real-world event.
+\subsection{Transaction Properties}
+Each individual transaction must display atomicity, consistency, isolation, and durability.
+These four properties are sometimes referred to as the ACID test.
+\begin{itemize}
+\item \textit{Atomicity} requires that all operations (SQL requests) of a transaction be completed;
+if not, the transaction is aborted.
+\item \textit{Consistency} indicates the permanence of the database's consistent state. A transaction takes a database from one consistent state to another. When a transaction is completed, the database must be in a consistent state. If any of the transaction parts violates an integrity constraint, the entire transaction is aborted.
+\item \textit{Isolation} means that the data used during the execution of a transaction cannot be used by a second transaction until the first one is completed.
+\item \textit{Durability} ensures that once transaction changes are done and committed, they cannot be undone or lost, even in the event of a system failure.
+\end{itemize}
+\subsection{Transaction Management with SQL}
+\begin{itemize}
+\item When a \texttt{COMMIT} statement is reached, all changes are permanently recorded within the database. The \texttt{COMMIT} statement automatically ends the SQL transaction.
+\item When a \texttt{ROLLBACK} statement is reached, all changes are aborted and the database is rolled back to its previous consistent state.
+\item The end of a program is successfully reached, in which case all changes are permanently recorded within the database. This action is equivalent to \texttt{COMMIT}.
+\item The program is abnormally terminated, in which case the database changes are aborted and the database is rolled back to its previous consistent state. This action is equivalent to \texttt{ROLLBACK}.
+\end{itemize}
+\subsection{The Transaction Log}
+A DBMS uses a \textbf{transaction log} to keep track of all transactions that update the database. The DBMS uses the information stored in this log for a recovery requirement triggered by a \texttt{ROLLBACK} statement, a program's abnormal termination, or a system failure such as a network discrepancy or a disk crash. Some RDBMSs use the transaction log to recover a database forward to a currently consistent state.
+
+While the DBMS executes transactions that modify the database, it also automatically updates the transaction log. The transaction log stores the following:
+\begin{itemize}
+\item A record for the beginning of the transaction.
+\item For each transaction component (SQL statement):
+\begin{itemize}
+\item The type of operation being performed (\texttt{INSERT}, \texttt{UPDATE}, \texttt{DELETE}).
+\item The names of the objects affected by the transaction (the name of the table).
+\item The \textit{"before"} and \textit{"after"} values for the fields being updated.
+\item Pointers to the previous and next transaction log entries for the same transaction.
+\end{itemize}
+\item The ending (\texttt{COMMIT}) of the transaction.
+\end{itemize}
+\section{Concurrency Control}
+Coordinating the simultaneous execution of transactions in a multiuser database system is known as \textbf{concurrency control}. The objective of concurrency control is to ensure the serializability of transactions in a multiuser database environment. To achieve this goal, most concurrency control techniques are oriented toward preserving the isolation property of concurrently executing transactions. Concurrency control is important because the simultaneous execution of transactions over a shared database can create several data integrity and consistency problems. The three main problems are lost updates, uncommitted data, and inconsistent retrievals.
+\subsection{Lost Updates}
+The \textbf{lost update} problem occurs when two concurrent transactions, T1 and T2, are updating the same data element and one of the updates is lost (overwritten by the other transaction).
+\subsection{Uncommitted Data}
+The phenomenon of \textbf{uncommitted data} occurs when two transactions, T1 and T2, are executed concurrently and the first transaction (T1) is rolled back after the second transaction (T2) has already accessed the uncommitted data—thus violating the isolation property of transactions.
+\subsection{Inconsistent Retrievals}
+\textbf{Inconsistent retrievals} occur when a transaction accesses data before and after one or more other transactions finish working with such data. For example, an inconsistent retrieval would occur if transaction T1 calculated some summary (aggregate) function over a set of data while another transaction (T2) was updating the same data. The problem is that the transaction might read some data before it is changed and other data after it is changed, thereby yielding inconsistent results.
+\subsection{The Scheduler}
+The \textbf{scheduler} is a special DBMS process that establishes the order in which the operations are executed within concurrent transactions. The scheduler \textit{interleaves} the execution of database operations to ensure serializability and isolation of transactions. To determine the appropriate order, the scheduler bases its actions on concurrency control algorithms, such as locking or time stamping methods.
+
+The scheduler's main job is to create a serializable schedule of a transaction's operations, in which the interleaved execution of the transactions (T1, T2, T3, etc.) yields the same results as if the transactions were executed in serial order (one after another).
+
+The scheduler also makes sure that the computer's central processing unit (CPU) and
+storage systems are used efficiently.
+\section{Concurrency Control with Locking Methods}
+ A \textbf{lock} guarantees exclusive use of a data item to a current transaction. In other words, transaction T2 does not have access to a data item that is currently being used by transaction T1. A transaction acquires a lock prior to data access; the lock is released (unlocked) when the transaction is completed.
+
+The use of locks based on the assumption that conflict between transactions is likely is usually referred to as \textbf{pessimistic locking}.
+
+Most multiuser DBMSs automatically initiate and enforce locking procedures. All lock information is handled by a \textbf{lock manager}, which is responsible for assigning and policing the locks used by the transactions.
+\end{document}

@@ -1,7 +1,9 @@
 # CMPG321
 Notes for CMPG321 - Advanced Databases. Used for Tutoring as well
 
-To download the pdf file directly click [here](/notes.pdf)
+To download the pdf file directly click [here](https://github.com/AM-ops/CMPG321/raw/main/notes.pdf)
+
+## Topics covered
 
 Study unit 1 - Transaction Management and Concurrency Control
 

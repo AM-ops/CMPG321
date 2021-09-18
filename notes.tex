@@ -224,6 +224,78 @@ ascending order, from oldest to newest.
 \item For any transaction that had a \texttt{ROLLBACK} operation after the last checkpoint or that was left active (with neither a \texttt{COMMIT} nor a \texttt{ROLLBACK}) before the failure occurred, the DBMS uses the transaction log records to \texttt{ROLLBACK} or undo the operations, using the "before" values in the transaction log. Changes are applied in reverse order, from newest to oldest.
 \end{enumerate}
 \chapter{Database Performance Tuning and Query Optimization}
+\section{Database Performance-Tuning Concepts}
+One of the main functions of a database system is to provide timely answers to end users. End users interact with the DBMS through the use of queries to generate information, using the following sequence:
+\begin{enumerate}
+\item The end-user (client-end) application generates a query.
+\item The query is sent to the DBMS (server end).
+\item The DBMS (server end) executes the query.
+\item The DBMS sends the resulting data set to the end-user (client-end) application.
+\end{enumerate}
+\textbf{Database performance tuning} refers to a set of activities and procedures designed to reduce the response time of the database system-that is, to ensure that an end-user query is processed by the DBMS in the minimum amount of time.
+\begin{center}
+\textbf{Good database performance starts with good database design}. \textit{No amount of fine tuning will make a poorly designed database perform as well as a well-designed database}. 
+\end{center}
+\subsection{Performance Tuning: Client and Server}
+In general, database performance-tuning activities can be divided into those on the client side and those on the server side.
+
+On the client side, the objective is to generate a SQL query that returns the correct answer in the least amount of time, using the minimum amount of resources at the server end. The activities required to achieve that goal are commonly referred to as \textbf{SQL performance tuning}.
+
+On the server side, the DBMS environment must be properly configured to respond to clients' requests in the fastest way possible, while making optimum use of existing resources. The activities required to achieve that goal are commonly referred to as \textbf{DBMS performance tuning}.
+\subsection{DBMS Architecture}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.6]{pics/arch}
+\caption{DBMS Architecture}
+\end{figure}
+All data in a database is stored in \textbf{data files}. A data file can contain rows from a single table, or it can contain rows from many different tables. Data files can automatically expand as required in predefined increments known as \textbf{extents}.
+
+Data files are generally grouped in file groups or table spaces. A \textbf{table space} or \textbf{file group} is a logical grouping of several data files that store data with similar characteristics.
+
+The \textbf{data cache}, or \textbf{buffer cache}, is a shared, reserved memory area that stores the most recently accessed data blocks in RAM.
+
+The \textbf{SQL cache}, or \textbf{procedure cache}, is a shared, reserved memory area that stores the most recently executed SQL statements or PL/SQL procedures, including triggers and functions.
+
+To move data from permanent storage (data files) to RAM (data cache), the DBMS issues I/O requests and waits for the replies. An \textbf{input/output (I/O) request} is a lowlevel data access operation that reads or writes data to and from computer devices.\\\\
+
+\textit{Listener} - The listener process listens for clients' requests and handles the processing of the SQL requests to other DBMS processes. Once a request is received, the listener
+passes the request to the appropriate user process.
+
+\textit{User} - The DBMS creates a user process to manage each client session. Therefore, when you log on to the DBMS, you are assigned a user process. This process handles all requests you submit to the server. There are many user processes—at least one per logged-in client.
+
+\textit{Scheduler} - The scheduler process organizes the concurrent execution of SQL requests.
+
+\textit{Lock manager} - This process manages all locks placed on database objects, including disk pages.
+
+\textit{Optimizer} - The optimizer process analyzes SQL queries and finds the most efficient way to access the data.
+\subsection{Database Query Optimization Modes}
+Most of the algorithms proposed for query optimization are based on two principles:
+\begin{itemize}
+\item The selection of the optimum execution order to achieve the fastest execution time
+\item The selection of sites to be accessed to minimize communication costs
+\end{itemize}
+Within those two principles, a query optimization algorithm can be evaluated on the basis of its \textit{operation mode} or the \textit{timing of its optimization}. Operation modes can be classified as manual or automatic.
+
+\textbf{Automatic query optimization} means that the DBMS finds the most cost-effective access path without user intervention.
+
+\textbf{Manual query optimization} requires that the optimization be selected and scheduled by the end user or programmer.\\\\
+Query optimization algorithms can also be classified according to when the optimization is done. Within this timing classification, query optimization algorithms can be static or dynamic.
+
+\textbf{Static query optimization} takes place at compilation time. In other words, the best optimization strategy is selected when the query is compiled by the DBMS.
+
+\textbf{Dynamic query optimization} takes place at execution time. Database access strategy is defined when the program is executed.\\\\
+Finally, query optimization techniques can be classified according to the type of information that is used to optimize the query. For example, queries may be based on statistically based or rule-based algorithms.
+
+A \textbf{statistically based query optimization algorithm} uses statistical information about the database. The statistical information is managed by the DBMS and is generated in one of two different modes: dynamic or manual. In the \textbf{dynamic statistical generation mode}, the DBMS automatically evaluates and updates the statistics after each data access operation. In the \textbf{manual statistical generation mode}, the statistics must be updated periodically through a user-selected utility.
+
+A \textbf{rule-based query optimization algorithm} is based on a set of user-defined rules to determine the best query access strategy.
+\subsection{Database Statistics}
+Another DBMS process that plays an important role in query optimization is gathering database statistics. The term \textbf{database statistics} refers to a number of measurements about database objects.
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{pics/stat}
+\end{figure}
+\section{Query Processing}
 \chapter{Distributed Database Management Systems}
 \chapter{SQL Fundamentals 1}
 \chapter{SQL Fundamentals 2}

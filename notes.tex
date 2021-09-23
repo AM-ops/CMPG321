@@ -25,7 +25,7 @@
 \begin{document}
 \linespread{1.25}
 \title{CMPG321 - Advanced Databases\\Additional Notes\\Semester 2}
-\date{}
+\date{\textit{Last updated: 23 September 2021}}
 \maketitle
 \tableofcontents{}
 
@@ -296,6 +296,167 @@ Another DBMS process that plays an important role in query optimization is gathe
 \includegraphics[scale=0.5]{pics/stat}
 \end{figure}
 \section{Query Processing}
+In simple terms, the DBMS processes a query in three phases:
+\begin{enumerate}
+\item \textit{Parsing} - The DBMS parses the SQL query and chooses the most efficient access/
+execution plan.
+\item \textit{Execution} - The DBMS executes the SQL query using the chosen execution plan.
+\item \textit{Fetching} - The DBMS fetches the data and sends the result set back to the client.
+\end{enumerate}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{pics/query}
+\caption{Query Processing}
+\end{figure}
+\subsection{SQL Parsing Phase}
+The SQL parsing activities are performed by the \textbf{query optimizer}, which analyzes the
+SQL query and finds the most efficient way to access the data. This process is the most time-consuming phase in query processing. Parsing a SQL query requires several steps, in which the SQL query is:
+\begin{itemize}
+\item Validated for syntax compliance
+\item Validated against the data dictionary to ensure that table names and column names are correct
+\item Validated against the data dictionary to ensure that the user has proper access rights
+\item Analysed and decomposed into more atomic components
+\item Optimized through transformation into a fully equivalent but more efficient SQL query
+\item Prepared for execution by determining the most efficient execution or access plan
+\end{itemize}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{pics/operations}
+\caption{Sample DBMS Access Plan I/O Operations}
+\end{figure}
+\subsection{SQL Execution Phase}
+In this phase, all I/O operations indicated in the access plan are executed. When the execution plan is run, the proper locks-if needed-are acquired for the data to be accessed, and the data is retrieved from the data files and placed in the DBMS's data cache.
+\subsection{SQL Fetching Phase}
+After the parsing and execution phases are completed, all rows that match the specified condition(s) are retrieved, sorted, grouped, and aggregated (if required). During the fetching phase, the rows of the resulting query result set are returned to the client. The DBMS might use temporary table space to store temporary data.
+\subsection{Query Processing Bottlenecks}
+A \textbf{query processing bottleneck} is a delay introduced in the processing of an I/O operation that
+causes the overall system to slow down. Within a DBMS, five components typically cause bottlenecks:
+\begin{itemize}
+\item \textit{CPU} - The CPU processing power of the DBMS should match the system's expected work load. A high CPU utilization might indicate that the processor speed is too slow for the amount of work performed.
+\item \textit{RAM} - The DBMS allocates memory for specific usage, such as data cache and SQL cache. RAM must be shared among all running processes, including the operating system and DBMS.
+\item \textit{Hard disk} - Other common causes of bottlenecks are hard disk speed and data transfer
+rates.
+\item \textit{Network} - In a database environment, the database server and the clients are connected via a network. All networks have a limited amount of bandwidth that is shared among all clients.
+\item \textit{Application code} - Not all bottlenecks are caused by limited hardware resources. Two
+of the most common sources of bottlenecks are inferior application code and poorly designed databases.
+\end{itemize}
+\section{Indexes and Query Optimization}
+Indexes are crucial in speeding up data access because they facilitate searching, sorting, and using aggregate functions and even join operations. The improvement in data access speed occurs because an index is an ordered set of values that contains the index key and pointers. If there is no index, the DBMS will perform a full-table scan. One measure that determines the need for an index is the data sparsity of the column you want to index. \textbf{Data sparsity} refers to the number of different values a column could have.
+
+Most DBMSs implement indexes using one of the following data structures:
+\begin{itemize}
+\item \textbf{Hash index} - A hash index is based on an ordered list of hash values. A hash algorithm
+is used to create a hash value from a key column. This value points to an entry in a hash table, which in turn points to the actual location of the data row. This type of index is good for simple and fast lookup operations based on equality conditions.
+\item \textbf{B-tree index} - The B-tree index is an ordered data structure organized as an upside-
+down tree. The index tree is stored separately from the data. The lower-level leaves of the B-tree index contain the pointers to the actual data rows. B-tree indexes are "self-balanced," which means that it takes approximately the same amount of time to access any given row in the index.
+\item \textbf{Bitmap index} - A bitmap index uses a bit array (0s and 1s) to represent the existence of a value or condition. These indexes are used mostly in data warehouse applications in tables with a large number of rows in which a small number of column values repeat many times. Bitmap indexes tend to use less space than B-tree indexes because they use bits instead of bytes to store their data.
+\end{itemize}
+\section{Optimizer Choices}
+Each DBMS has its own algorithms for deter-
+mining the most efficient way to access the data. The query optimizer can operate in one
+of two modes:
+\begin{itemize}
+\item A \textbf{rule-based optimizer} uses preset rules and points to determine the best approach to execute a query. The rules assign a "fixed cost" to each SQL operation; the costs are then added to yield the cost of the execution plan.
+\item A \textbf{cost-based optimizer} uses sophisticated algorithms based on statistics about the objects being accessed to determine the best approach to execute a query. In this case, the optimizer process adds up the processing cost, the I/O costs, and the resource costs to determine the total cost of a given execution plan.
+\end{itemize}
+\subsection{Using Hints to Affect Optimizer Choices}
+Sometimes the end user would like to change the optimizer mode for the current SQL statement. To do that,
+you need to use hints. \textbf{Optimizer hints} are special instructions for the optimizer that are
+embedded inside the SQL command text.
+\section{SQL Performance Tuning}
+SQL performance tuning is evaluated from the client perspective. Therefore, the goal is
+to illustrate some common practices used to write efficient SQL code. A few words of
+caution are appropriate:
+\begin{itemize}
+\item Most current-generation relational DBMSs perform automatic query optimization at the server end.
+\item Most SQL performance optimization techniques are DBMS-specific and, therefore, are rarely portable, even across different versions of the same DBMS. Part of the reason for this behaviour is the constant advancement in database technologies.
+\end{itemize}
+\subsection{Index Selectivity}
+Indexes are the most important technique used in SQL performance optimization. The key is to know when an index is used. As a general rule, indexes are likely to be used:
+\begin{itemize}
+\item When an indexed column appears by itself in the search criteria of a \texttt{WHERE} or \texttt{HAVING} clause.
+\item When an indexed column appears by itself in a \texttt{GROUP BY} or \texttt{ORDER BY} clause
+\item When a \texttt{MAX} or \texttt{MIN} function is applied to an indexed column
+\item When the data sparsity on the indexed column is high
+\end{itemize}
+The objective is to create indexes with high selectivity. \textbf{Index selectivity} is a measure of the likelihood that an index will be used in query processing. Here are some general guidelines for creating and using indexes:
+\begin{itemize}
+\item Create indexes for each single attribute used in a \texttt{WHERE}, \texttt{HAVING}, \texttt{ORDER BY}, or \texttt{GROUP BY} clause.
+\item Do not use indexes in small tables or tables with low sparsity.
+\item Declare primary and foreign keys so the optimizer can use the indexes in join operations.
+\item Declare indexes in join columns other than PK or FK.
+\end{itemize}
+You cannot always use an index to improve performance. The reason is that in some DBMSs, indexes are ignored when you use functions in the table attributes. However, major databases such as Oracle, SQL Server, and DB2 now support function-based indexes. A \textbf{function-based index} is an index based on a specific SQL function or expression. Function-based indexes are especially useful when dealing with derived attributes.
+\subsection{Conditional Expressions}
+A conditional expression is normally placed within the \texttt{WHERE} or \texttt{HAVING} clauses of
+a SQL statement. Also known as conditional criteria, a conditional expression restricts the output of a query to only the rows that match the conditional criteria. Most of the query optimization techniques mentioned below are designed to make the optimizer's work easier. The following common practices are used to write efficient conditional expressions in SQL code.
+\begin{itemize}
+\item Use simple columns or literals as operands in a conditional expression-avoid the use of conditional expressions with functions whenever possible. Comparing the contents of a single column to a literal is faster than comparing to expressions.
+\item Numeric field comparisons are faster than character, date, and \texttt{NULL} comparisons. In search conditions, comparing a numeric attribute to a numeric literal is faster than comparing a character attribute to a character literal.
+\item Equality comparisons are generally faster than inequality comparisons.
+\item Whenever possible, transform conditional expressions to use literals.
+\item When using multiple conditional expressions, write the equality conditions first.
+\item If you use multiple \texttt{AND} conditions, write the condition most likely to be false first.
+\item When using multiple \texttt{OR} conditions, put the condition most likely to be true first.
+\item Whenever possible, try to avoid the use of the \texttt{NOT} logical operator.
+\end{itemize}
+\section{Query formulation}
+Queries are usually written to answer questions. This section focuses on \texttt{SELECT} queries because they are the queries you will find in most applications. To formulate a query, you would normally follow these steps:
+\begin{enumerate}
+\item Identify what columns and computations are required.
+\begin{itemize}
+\item Do you need simple expressions?
+\item Do you need aggregate functions?
+\item Determine the granularity of the raw data required for your output.
+\end{itemize}
+\item Identify the source tables.
+\item Determine how to join the tables.
+\item Determine what selection criteria are needed.
+\begin{itemize}
+\item Simple comparisons
+\item Single value to multiple values
+\item Nested comparisons
+\item Grouped data selection
+\end{itemize}
+\item Determine the order in which to display the output
+\end{enumerate}
+\section{DBMS Performance Tuning}
+DBMS performance tuning includes global tasks such as managing the DBMS processes in primary memory and managing the structures in physical storage.
+
+DBMS performance tuning at the server end focuses on setting the parameters used for:
+\begin{itemize}
+\item Data cache
+\item SQL cache
+\item Sort cache
+\item Optimizer mode
+\end{itemize}
+
+\pagebreak
+From the performance point of view, it would be optimal to have the entire database stored in primary memory to minimize costly disk access. This is why several database vendors offer in-memory database options for their main products. \textbf{In-memory database} systems are optimized to store large portions (if not all) of the database in primary (RAM) storage rather than secondary (disk) storage.
+
+Note the following general recommendations for physical storage of databases:
+\begin{itemize}
+\item Use \textbf{I/O accelerators} - This type of device uses flash solid state drives (SSDs) to store
+the database.
+\item Use \textbf{RAID} (Redundant Array of Independent Disks) to provide both performance improvement and fault tolerance, and a balance between them.
+\item Minimize disk contention. A database should have at least the following table spaces:
+\begin{itemize}
+\item \textit{System table space} - This is used to store the data dictionary tables.
+\item \textit{User data table space} - This is used to store end-user data. 
+\item \textit{Index table space} - This is used to store indexes. 
+\item \textit{Temporary table space} - This is used as a temporary storage area for merge, sort,
+or set aggregate operations.
+\item \textit{Rollback segment table space} - This is used for transaction-recovery purposes.
+\end{itemize}
+\item Put high-usage tables in their own table spaces so the database minimizes conflict
+with other tables.
+\item Assign separate data files in separate storage volumes for the indexes, system, and high-
+usage tables.
+\item Take advantage of the various table storage organizations available in the database. For example, in Oracle consider the use of index-organized tables (IOT); in SQL Server, consider clustered index tables. An \textbf{index-organized table} (or \textbf{clustered index table}) is a table that stores the end-user data and the index data in consecutive locations on permanent storage.
+\item Partition tables based on usage.
+\item Use denormalized tables where appropriate.
+\item Store computed and aggregate attributes in tables.
+\end{itemize}
 \chapter{Distributed Database Management Systems}
 \chapter{SQL Fundamentals 1}
 \chapter{SQL Fundamentals 2}
